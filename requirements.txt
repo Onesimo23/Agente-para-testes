@@ -1,0 +1,92 @@
+
+# Documentação de Instalação e Configuração do Projeto
+
+## Visão Geral
+
+Este projeto visa a criação de um sistema de testes de segurança automatizados para aplicações web. Utiliza machine learning para gerar dados simulados de ataques e o OWASP ZAP para realizar testes de penetração. Esta documentação guia você pelo processo de instalação e configuração do projeto.
+
+## Requisitos
+
+- Python 3.7 ou superior
+- Git (opcional, para controle de versão)
+
+## Passos de Instalação e Configuração
+
+### 1. Clonar o Repositório
+
+Se você ainda não tem o projeto, comece clonando o repositório. Substitua `<URL_DO_REPOSITORIO>` pela URL do seu repositório Git.
+
+```bash
+git clone <URL_DO_REPOSITORIO>
+cd <NOME_DO_DIRETORIO_DO_PROJETO>
+```
+
+### 2. Criar e Ativar o Ambiente Virtual
+
+Crie um ambiente virtual para gerenciar as dependências do projeto e ative-o.
+
+```bash
+python -m venv venv
+```
+
+- No **Windows**:
+
+  ```bash
+  .\venv\Scripts\activate
+  ```
+
+- No **Linux/MacOS**:
+
+  ```bash
+  source venv/bin/activate
+  ```
+
+### 3. Instalar as Dependências
+
+Instale as bibliotecas necessárias listadas no arquivo `requirements.txt`. Se o arquivo `requirements.txt` não estiver presente, você pode instalar as dependências manualmente conforme listado abaixo.
+
+```bash
+pip install -r bibliotecas.txt
+```
+
+Se você não tiver um arquivo `requirements.txt`, instale as bibliotecas manualmente:
+
+```bash
+pip install scikit-learn tensorflow requests python-owasp-zap-v2.4
+```
+
+### 4. Configurar OWASP ZAP
+
+Certifique-se de ter o OWASP ZAP instalado e em execução. Você pode baixar e instalar o OWASP ZAP [aqui](https://www.zaproxy.org/download/).
+
+Inicie o OWASP ZAP e configure a chave API conforme necessário.
+
+### 5. Preparar os Dados e Modelos
+
+Execute o script de treinamento para preparar e treinar o modelo de machine learning.
+
+```bash
+python models/treinamento_modelo.py
+```
+
+Este script criará e salvará os arquivos do modelo (`modelo.pkl`) e do vetor de características (`vectorizer.pkl`) na pasta `models/`.
+
+### 6. Gerar Dados de Teste
+
+Com o modelo treinado, você pode gerar dados simulados de ataques usando o seguinte script:
+
+```bash
+python models/geracao_dados.py
+```
+
+Este script usa o modelo treinado para gerar e imprimir exemplos de dados simulados.
+
+### 7. Executar Testes de Segurança
+
+Para iniciar a varredura ativa de segurança usando o OWASP ZAP, execute o script principal:
+
+```bash
+python main.py
+```
+
+Este script configura o OWASP ZAP para realizar uma varredura de segurança no site especificado e monitorar as respostas.
