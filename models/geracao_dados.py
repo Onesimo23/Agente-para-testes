@@ -31,5 +31,5 @@ def gerar_dados():
     for key, value in generated_data.items():
         print(f"{key}: {value}")
 
-if __name__ == "__main__":
-    gerar_dados()
+# if __name__ == "__main__":
+#     gerar_dados()
