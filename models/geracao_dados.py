@@ -6,16 +6,23 @@ def gerar_dados():
     Gera dados de teste para simular inputs maliciosos.
     """
     sql_injection_payloads = [
-        "' OR '1'='1",
-        "' OR '1'='1' --",
-        "' UNION SELECT NULL, username, password FROM users --"
-    ]
+    "' OR '1'='1",
+    "'; DROP TABLE users; --",
+    "' AND 1=2 UNION SELECT NULL, username, password FROM users --",
+    "' OR '1'='1' #",
+    "' OR '1'='1' /*"
+]
+
     
     xss_payloads = [
         "<script>alert('XSS')</script>",
-        "<img src='x' onerror='alert(1)'>",
-        "<a href='javascript:alert(1)'>click me</a>"
+        "<img src=x onerror=alert(1)>",
+        "<svg/onload=alert('XSS')>",
+        "<iframe src=javascript:alert('XSS')>",
+        "<input type=\"text\" value=\"<script>alert(1)</script>\">"
     ]
+
+
     
     # Geração de dados aleatórios
     def random_string(length=10):
