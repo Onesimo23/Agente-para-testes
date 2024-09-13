@@ -5,3 +5,4 @@ scikit-learn
 tensorflow
 python-owasp-zap-v2.4
 bs4
+fpdf

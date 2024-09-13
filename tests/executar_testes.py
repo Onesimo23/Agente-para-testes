@@ -1,14 +1,13 @@
-from zapv2 import ZAPv2
+from zapv2 import ZAPv2  # type: ignore
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup  # type: ignore
 from urllib.parse import urljoin
 from models.geracao_dados import gerar_dados
 from models.treinamento_modelo import treinar_modelo
 import os
-from fpdf import FPDF
+from fpdf import FPDF  # type: ignore
 import threading
 import time
-
 
 # Função para criar o relatório PDF
 def criar_relatorio_pdf(nome_site, resultados):
@@ -32,7 +31,7 @@ def criar_relatorio_pdf(nome_site, resultados):
 # Função para pegar formulários do site
 def get_forms(url):
     if not url.startswith(("http://", "https://")):
-        url = "https://" + url
+        url = "http://" + url
 
     try:
         response = requests.get(url)
@@ -92,7 +91,6 @@ def sql_injection_scan(url):
 # Função para executar testes de XSS
 def xss_scan(url):
     resultados = []
-    # Teste XSS básico
     payloads = [
         "<script>alert('XSS')</script>",
         "<img src='x' onerror='alert(1)'>",
@@ -112,9 +110,10 @@ def xss_scan(url):
     
     return resultados
 
+num_request = int(input('\n\tDigite o número de requisições desejadas: '))
+
 # Função para executar ataque DDoS simulado
-def ddos_attack_simulation(url, num_requests=10000000, delay=0):
-    #sugiro que mudes o numero de requisicoes kkkk coloquei 10milhoes porque estava a testar unisave kkk
+def ddos_attack_simulation(url, num_requests=num_request, delay=0):
     print(f"Simulando ataque DDoS em {url} com {num_requests} requisições...")
     def send_request():
         try:
@@ -150,7 +149,7 @@ def executar_testes():
     choice = input("Escolha a opção: ").strip()
 
     if choice == "1":
-        url = input("Insira o URL para teste de vulnerabilidades: ").strip()
+        url = input("Insira o URL para teste de vulnerabilidades (ex: http://localhost/dvwa): ").strip()
         print("Treinando o modelo...")
         treinar_modelo()
         print("Gerando dados...")
@@ -160,13 +159,13 @@ def executar_testes():
         print('Varredura ativa iniciada.')
         sql_injection_scan(url)
     elif choice == "2":
-        url = input("Insira o URL para teste de vulnerabilidades: ").strip()
+        url = input("Insira o URL para teste de vulnerabilidades (ex: http://localhost/dvwa): ").strip()
         xss_scan(url)
     elif choice == "3":
-        url = input("Insira o URL para o teste de DDoS: ").strip()
+        url = input("Insira o URL para o teste de DDoS (ex: http://localhost/dvwa): ").strip()
         ddos_attack_simulation(url)
     elif choice == "4":
-        url = input("Insira o URL para teste de vulnerabilidades: ").strip()
+        url = input("Insira o URL para teste de vulnerabilidades (ex: http://localhost/dvwa): ").strip()
         print("Executando todos os ataques...")
         print('Iniciando varredura ativa...')
         zap.ascan.scan(url)

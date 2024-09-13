@@ -1,8 +1,6 @@
 import requests
-import time
 from datetime import datetime
-from jinja2 import Template
-from fpdf import FPDF
+from fpdf import FPDF # type: ignore
 
 # Função para gerar relatório em PDF
 def gerar_relatorio_pdf(resultados, url):
@@ -35,11 +33,11 @@ def gerar_relatorio_pdf(resultados, url):
     print("Relatório em PDF gerado com sucesso.")
 
 # Função para monitorar e analisar as respostas da aplicação
-
 def monitorar_respostas(url):
     """
     Monitora e analisa a resposta da aplicação para identificar falhas.
     """
+    resultados = []
     try:
         response = requests.get(url)
         status_code = response.status_code
@@ -51,14 +49,27 @@ def monitorar_respostas(url):
         
         # Simples verificação para demonstrar
         if status_code != 200:
-            print("Atenção: A aplicação retornou um status code diferente de 200.")
+            resultados.append({
+                'data_hora': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'status_code': status_code,
+                'vulnerabilidade': 'Status Code diferente de 200',
+                'conteudo': content[:500]
+            })
         
         if "vulnerabilidade" in content.lower():
-            print("Atenção: A resposta contém possíveis indicadores de vulnerabilidade.")
-    
+            resultados.append({
+                'data_hora': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'status_code': status_code,
+                'vulnerabilidade': 'Conteúdo contém indicadores de vulnerabilidade',
+                'conteudo': content[:500]
+            })
+
     except requests.RequestException as e:
         print(f"Erro ao fazer a requisição: {e}")
 
+    return resultados
+
 if __name__ == "__main__":
-    # Este código será chamado a partir do main, então o URL será passado para ele
-    pass
+    url = input("Insira o URL para monitoramento: ").strip()
+    resultados = monitorar_respostas(url)
+    gerar_relatorio_pdf(resultados, url)
