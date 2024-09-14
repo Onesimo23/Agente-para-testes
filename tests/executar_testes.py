@@ -8,6 +8,12 @@ import os
 from fpdf import FPDF  # type: ignore
 import threading
 import time
+import re
+
+
+def sanitize_filename(filename):
+    # Substitui todos os caracteres inválidos por "_"
+    return re.sub(r'[\\/*?:"<>|]', "_", filename)
 
 # Função para criar o relatório PDF
 def criar_relatorio_pdf(nome_site, resultados):
@@ -24,9 +30,11 @@ def criar_relatorio_pdf(nome_site, resultados):
         pdf.multi_cell(0, 10, txt=resultado)
         pdf.ln(5)
     
-    relatorio_path = os.path.join('reports', f'relatorio_de_{nome_site}.pdf')
+    nome_site_sanitized = sanitize_filename(nome_site)
+    relatorio_path = os.path.join('reports', f'relatorio_de_{nome_site_sanitized}.pdf')
     pdf.output(relatorio_path)
     print(f"Relatório salvo como {relatorio_path}")
+
 
 # Função para pegar formulários do site
 def get_forms(url):
@@ -63,6 +71,7 @@ def form_details(form):
 
     return details_of_form
 
+
 # Função para executar testes de SQL Injection
 def sql_injection_scan(url):
     forms = get_forms(url)
@@ -83,10 +92,13 @@ def sql_injection_scan(url):
             res = requests.post(form_url, data=data) if method == "post" else requests.get(form_url, params=data)
             if "syntax" in res.text.lower():
                 resultados.append(f"[!] Vulnerabilidade de SQL Injection detectada em {form_url}")
+            else:
+                resultados.append(f"SQL Injection não detectado no formulário {form_url}")
         except requests.exceptions.RequestException as e:
             resultados.append(f"Erro ao testar SQL Injection: {e}")
     
     return resultados
+
 
 # Função para executar testes de XSS
 def xss_scan(url):
@@ -110,17 +122,18 @@ def xss_scan(url):
     
     return resultados
 
-num_request = int(input('\n\tDigite o número de requisições desejadas: '))
 
 # Função para executar ataque DDoS simulado
-def ddos_attack_simulation(url, num_requests=num_request, delay=0):
+def ddos_attack_simulation(url, num_requests, delay=0):
     print(f"Simulando ataque DDoS em {url} com {num_requests} requisições...")
+    resultados = []
+
     def send_request():
         try:
             response = requests.get(url)
-            print(f"Status Code: {response.status_code}")
+            resultados.append(f"Status Code: {response.status_code}")
         except requests.exceptions.RequestException as e:
-            print(f"Erro ao realizar requisição DDoS: {e}")
+            resultados.append(f"Erro ao realizar requisição DDoS: {e}")
     
     threads = []
     for _ in range(num_requests):
@@ -133,8 +146,10 @@ def ddos_attack_simulation(url, num_requests=num_request, delay=0):
         thread.join()
 
     print("Simulação de ataque DDoS concluída.")
+    return resultados
 
-# Atualizando a função principal de execução de testes
+
+# Função principal de execução de testes
 def executar_testes():
     print("\n\t\t============== Agente de Teste de Vulnerabilidades ==============")
     print("\n\n\t\t=================== Seja Bem Vindo ==================")
@@ -144,34 +159,37 @@ def executar_testes():
     zap_api_key = input("Insira a API da ZAP: ").strip()
     zap = ZAPv2(apikey=zap_api_key, proxies={'http': f'http://{zap_ip}:8080'})
 
+    resultados = []  # Lista para armazenar todos os resultados
+    
     print("\nEscolha o tipo de teste a ser realizado:")
     print("\n\t1 - SQL Injection\n\t2 - XSS\n\t3 - DDoS\n\t4 - Todos os ataques")
     choice = input("Escolha a opção: ").strip()
 
-    if choice == "1":
-        url = input("Insira o URL para teste de vulnerabilidades (ex: http://localhost/dvwa): ").strip()
-        print("Treinando o modelo...")
-        treinar_modelo()
-        print("Gerando dados...")
-        gerar_dados()
-        print('Iniciando varredura ativa...')
-        zap.ascan.scan(url)
-        print('Varredura ativa iniciada.')
-        sql_injection_scan(url)
-    elif choice == "2":
-        url = input("Insira o URL para teste de vulnerabilidades (ex: http://localhost/dvwa): ").strip()
-        xss_scan(url)
-    elif choice == "3":
-        url = input("Insira o URL para o teste de DDoS (ex: http://localhost/dvwa): ").strip()
-        ddos_attack_simulation(url)
-    elif choice == "4":
-        url = input("Insira o URL para teste de vulnerabilidades (ex: http://localhost/dvwa): ").strip()
-        print("Executando todos os ataques...")
-        print('Iniciando varredura ativa...')
-        zap.ascan.scan(url)
-        print('Varredura ativa iniciada.')
-        sql_injection_scan(url)
-        xss_scan(url)
-        ddos_attack_simulation(url)
+    url = input("Insira o URL para teste de vulnerabilidades (ex: http://localhost/dvwa): ").strip()
+# url para testes sql: http://testphp.vulnweb.com/
+    if choice == "3" or choice == "4":
+        num_requests = int(input("Digite o número de requisições para o ataque DDoS: ").strip())
+        delay = float(input("Digite o intervalo entre as requisições (em segundos): ").strip())
     else:
-        print("Opção inválida! Por favor, escolha uma opção válida.")
+        num_requests = 0
+        delay = 0
+
+    if choice == "1" or choice == "4":
+        print("Iniciando varredura SQL Injection...")
+        resultados_sql_injection = sql_injection_scan(url)  # Chama o teste de SQL Injection
+        resultados.extend(resultados_sql_injection)  # Adiciona os resultados à lista
+
+    if choice == "2" or choice == "4":
+        print("Iniciando varredura XSS...")
+        resultados_xss = xss_scan(url)  # Chama o teste de XSS
+        resultados.extend(resultados_xss)  # Adiciona os resultados à lista
+
+    if choice == "3" or choice == "4":
+        print("Iniciando simulação de ataque DDoS...")
+        ddos_results = ddos_attack_simulation(url, num_requests, delay)  # Chama o teste de DDoS
+        resultados.extend(ddos_results)  # Adiciona os resultados à lista
+
+    if not resultados:
+        resultados.append("Nenhuma vulnerabilidade foi encontrada nos testes executados.")
+
+    criar_relatorio_pdf(url, resultados)  # Gera o relatório com os resultados finais
